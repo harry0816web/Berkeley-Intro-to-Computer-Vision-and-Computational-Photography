@@ -612,8 +612,8 @@ def auto_stitch(im1, im2):
     return mosaic
 
 if __name__ == "__main__":
-    img1 = load_gray('../data/panorama2-left.jpeg')
-    img2 = load_gray('../data/panorama2-right.jpeg')
+    img1 = load_gray('../data/panorama1-left.jpeg')
+    img2 = load_gray('../data/panorama1-right.jpeg')
     final_mosaic = auto_stitch(img1, img2)
     plt.imshow(final_mosaic, cmap='gray')
     plt.show()

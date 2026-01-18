@@ -277,8 +277,8 @@ def plot_matches(img1, img2, corners1, corners2, matches):
 # descriptors1, corners1 = extract_features(img1, anms_corners1)
 # descriptors2, corners2 = extract_features(img2, anms_corners2)
 if __name__ == "__main__":
-    img1 = load_gray('../data/panorama2-left.jpeg')
-    img2 = load_gray('../data/panorama2-right.jpeg')
+    img1 = load_gray('../data/panorama1-left.jpeg')
+    img2 = load_gray('../data/panorama1-right.jpeg')
     corners1 = get_harris_corners(img1)
     corners2 = get_harris_corners(img2)
     local_maxima1 = get_local_maxima(corners1, min_distance=1, threshold=0.001)

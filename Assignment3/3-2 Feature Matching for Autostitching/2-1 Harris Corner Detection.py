@@ -115,7 +115,7 @@ def adaptive_non_maximal_suppression(corners, harris_map, N_best=500, c_robust=0
 # ==========================================
 # 讀取圖片 (請換成你的圖片路徑)
 # 建議讀成灰階
-img = iio.imread('data/panorama2-left.jpeg')
+img = iio.imread('../data/panorama1-left.jpeg')
 if img.ndim == 3:
     gray = np.dot(img[...,:3], [0.299, 0.587, 0.114])
 else:

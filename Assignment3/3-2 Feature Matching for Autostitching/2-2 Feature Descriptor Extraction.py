@@ -185,7 +185,7 @@ def extract_features(img, corners, patch_size=40, descriptor_size=8):
 # 主程式
 # ==========================================
 if __name__ == "__main__":
-    gray = load_gray('../data/panorama2-left.jpeg')
+    gray = load_gray('../data/panorama1-left.jpeg')
 
     print("1. 計算 Harris Response...")
     harris_map = get_harris_corners(gray)
