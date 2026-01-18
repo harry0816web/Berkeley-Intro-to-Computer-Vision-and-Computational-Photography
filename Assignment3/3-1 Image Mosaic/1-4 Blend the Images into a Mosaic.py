@@ -359,9 +359,7 @@ if __name__ == "__main__":
         plt.axis('off')
         plt.tight_layout()
         plt.show()
-        
-        # 若想把包含 alpha mask 的圖一起存起來，也可以在這裡額外做 plt.savefig(...)
-        
+                
         # 保留原本純 mosaic 的存檔（不含點）
         iio.imwrite('mosaic_result.jpg', result)
         print("全景圖已儲存！")

@@ -552,7 +552,7 @@ def ransac_homography(pts1, pts2, num_iters=2000, threshold=5.0):
     
     return H_final, max_inliers
 
-def auto_stitch(im1, im2):
+def auto_stitch(im1, im2, origin_image1, origin_image2):
     print("=== Step 1: Harris Corner Detection & ANMS ===")
     corners1 = get_harris_corners(im1)
     corners2 = get_harris_corners(im2)
@@ -581,16 +581,42 @@ def auto_stitch(im1, im2):
     print("=== Step 4: RANSAC Homography ===")
     # converting img1(dest) to img2(src)
     H_robust, inliers_idx = ransac_homography(matched_pts2, matched_pts1) # computeH(src, dest)
+
+    # Visualize RANSAC Inliers
+    plt.figure(figsize=(10, 5))
+    # left image
+    plt.subplot(1, 2, 1)
+    plt.imshow(origin_image1, cmap='gray')
+    plt.plot(valid_corners1[:, 1], valid_corners1[:, 0], 'b.', markersize=3, label='ANMS Points')
+    plt.plot(matched_pts1[:, 0], matched_pts1[:, 1], 'y+', markersize=10, label='Matched Points')
+    inlier_pts1 = matched_pts1[inliers_idx]
+    plt.plot(inlier_pts1[:, 0], inlier_pts1[:, 1], 'r*', markersize=10, label='RANSAC Inliers')
+    plt.title('Image 1 - Correspondence Points')
+    plt.legend()
+    plt.axis('off')
+    # right image
+    plt.subplot(1, 2, 2)
+    plt.imshow(origin_image2, cmap='gray')
+    plt.plot(valid_corners2[:, 1], valid_corners2[:, 0], 'b.', markersize=3, label='ANMS Points')
+    plt.plot(matched_pts2[:, 0], matched_pts2[:, 1], 'y+', markersize=10, label='Matched Points')
+    inlier_pts2 = matched_pts2[inliers_idx]
+    plt.plot(inlier_pts2[:, 0], inlier_pts2[:, 1], 'r*', markersize=10, label='RANSAC Inliers')
+    plt.title('Image 2 - Correspondence Points')
+    plt.legend()
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
     
     print("=== Step 5: Warping and Blending ===")
     # 1. Use H_robust from RANSEC to warp images
-    output_shape, T = get_canvas_dimensions(im1, im2, H_robust)
+    output_shape, T = get_canvas_dimensions(origin_image1, origin_image2, H_robust)
     out_h, out_w = output_shape
     print(f"Output image shape: {out_h}x{out_w}")
     
-    warped_im1 = warpImage(im1, T, output_shape=(out_h, out_w))
+    warped_im1 = warpImage(origin_image1, T, output_shape=(out_h, out_w))
     H_final = T @ H_robust
-    warped_im2 = warpImage(im2, H_final, output_shape=(out_h, out_w))
+    warped_im2 = warpImage(origin_image2, H_final, output_shape=(out_h, out_w))
     
     # 2.Alpha Blending with Weight Masks
     mask1 = make_weight_mask(warped_im1)
@@ -612,8 +638,11 @@ def auto_stitch(im1, im2):
     return mosaic
 
 if __name__ == "__main__":
-    img1 = load_gray('../data/panorama1-left.jpeg')
-    img2 = load_gray('../data/panorama1-right.jpeg')
-    final_mosaic = auto_stitch(img1, img2)
+    img1 = iio.imread('../data/panorama1-left.jpeg')
+    img2 = iio.imread('../data/panorama1-right.jpeg')
+    gray1 = load_gray('../data/panorama1-left.jpeg')
+    gray2 = load_gray('../data/panorama1-right.jpeg')
+    final_mosaic = auto_stitch(gray1, gray2, img1, img2,)
+    iio.imwrite('../result/mosaic_result.jpg', final_mosaic)
     plt.imshow(final_mosaic, cmap='gray')
     plt.show()

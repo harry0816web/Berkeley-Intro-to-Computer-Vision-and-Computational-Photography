@@ -236,17 +236,17 @@ def plot_matches(img1, img2, corners1, corners2, matches):
     """
     將兩張圖並排，並畫出配對的連線
     """
-    h1, w1 = img1.shape[:2]
-    h2, w2 = img2.shape[:2]
+    h1, w1 = img1[:,...].shape[:2]
+    h2, w2 = img2[:,...].shape[:2]
     
     # 建立一個大畫布把兩張圖拼在一起
     vis_h = max(h1, h2)
     vis_w = w1 + w2
-    vis_img = np.zeros((vis_h, vis_w), dtype=img1.dtype)
+    vis_img = np.zeros((vis_h, vis_w, img1.shape[2]), dtype=img1.dtype)
     
     # 貼上圖片
-    vis_img[:h1, :w1] = img1
-    vis_img[:h2, w1:w1+w2] = img2
+    vis_img[:h1, :w1, :] = img1
+    vis_img[:h2, w1:w1+w2, :] = img2
     
     plt.figure(figsize=(15, 8))
     plt.imshow(vis_img, cmap='gray')
@@ -279,6 +279,8 @@ def plot_matches(img1, img2, corners1, corners2, matches):
 if __name__ == "__main__":
     img1 = load_gray('../data/panorama1-left.jpeg')
     img2 = load_gray('../data/panorama1-right.jpeg')
+    original_img1 = iio.imread('../data/panorama1-left.jpeg')
+    original_img2 = iio.imread('../data/panorama1-right.jpeg')
     corners1 = get_harris_corners(img1)
     corners2 = get_harris_corners(img2)
     local_maxima1 = get_local_maxima(corners1, min_distance=1, threshold=0.001)
@@ -296,7 +298,7 @@ if __name__ == "__main__":
         print(f"找到 {len(matches)} 組配對。")
         
         # 顯示結果
-        plot_matches(img1, img2, valid_corners1, valid_corners2, matches)
+        plot_matches(original_img1, original_img2, valid_corners1, valid_corners2, matches)
     else:
         print("請先執行 B.2 取得 descriptors 和 corners。")
 
