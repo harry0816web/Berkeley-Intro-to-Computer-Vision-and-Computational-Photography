@@ -285,8 +285,8 @@ if __name__ == "__main__":
     local_maxima2 = get_local_maxima(corners2, min_distance=1, threshold=0.001)
     anms_corners1 = adaptive_non_maximal_suppression(local_maxima1, corners1, N_best=500)
     anms_corners2 = adaptive_non_maximal_suppression(local_maxima2, corners2, N_best=500)
-    descriptors1, corners1 = extract_features(img1, anms_corners1)
-    descriptors2, corners2 = extract_features(img2, anms_corners2)
+    descriptors1, valid_corners1 = extract_features(img1, anms_corners1)
+    descriptors2, valid_corners2 = extract_features(img2, anms_corners2)
 
     if 'descriptors1' in locals() and 'descriptors2' in locals():
         print("執行特徵配對...")
@@ -296,7 +296,7 @@ if __name__ == "__main__":
         print(f"找到 {len(matches)} 組配對。")
         
         # 顯示結果
-        plot_matches(img1, img2, corners1, corners2, matches)
+        plot_matches(img1, img2, valid_corners1, valid_corners2, matches)
     else:
         print("請先執行 B.2 取得 descriptors 和 corners。")
 

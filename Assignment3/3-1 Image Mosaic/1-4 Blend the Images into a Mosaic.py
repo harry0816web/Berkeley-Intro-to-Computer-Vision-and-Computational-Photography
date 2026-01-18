@@ -316,8 +316,8 @@ if __name__ == "__main__":
     # 建議先用手機拍兩張：左邊一張 (img1)，右邊一張 (img2)
     # 確保 img1 是你想保留視角的基準圖
     try:
-        im1 = iio.imread('data/panorama1-left.jpeg')  # 請準備圖片
-        im2 = iio.imread('data/panorama1-right.jpeg')
+        im1 = iio.imread('../data/panorama1-left.jpeg')  # 請準備圖片
+        im2 = iio.imread('../data/panorama1-right.jpeg')
         
         # 2. 選點 (至少 4 點，建議 6 點)
         # 注意：請先在 img1 (基準) 點，再在 img2 (變形) 點
