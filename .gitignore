@@ -9,5 +9,8 @@ Project5/outputs/
 !Project5/outputs/
 !Project5/outputs/part2/
 !Project5/outputs/part2/lego_novel_views.gif
+*.pt
+Project1/data/harvesters.tif
+Project5/Project5_outputs.zip
 *.egg-info/
 Project5_source.zip
