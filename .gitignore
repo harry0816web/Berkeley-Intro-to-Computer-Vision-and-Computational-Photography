@@ -1,1 +1,13 @@
 Assignment1/data/*
+Project3/IMM-Face/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+Project5/data/lego_200x200.npz
+Project5/outputs/
+!Project5/outputs/
+!Project5/outputs/part2/
+!Project5/outputs/part2/lego_novel_views.gif
+*.egg-info/
+Project5_source.zip

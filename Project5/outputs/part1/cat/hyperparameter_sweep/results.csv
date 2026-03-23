@@ -1,0 +1,5 @@
+name,hidden_dim,num_hidden_layers,num_frequencies,learning_rate,final_psnr
+baseline_L10_layers3,256,3,10,0.01,27.836571452167
+lower_frequency_L4,256,3,4,0.01,25.099916830186718
+shallower_layers2,256,2,10,0.01,27.39201787657614
+L4_layers2,256,2,4,0.01,25.75025657559651
