@@ -49,7 +49,7 @@ This repository explores how images can be aligned, filtered, warped, blended, m
   <tr>
     <td width="230" valign="top" align="center">
       <a href="Project3/README.md">
-        <img src="Project3/results/morph_comparison/individual_vs_population_mean.png" alt="Project 3 face morphing comparison" width="210">
+        <img src="Project3/results/eleven_to_george.gif" alt="Project 3 face morphing animation" width="210">
       </a>
     </td>
     <td valign="top">
