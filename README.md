@@ -38,6 +38,7 @@ This repository explores how images can be aligned, filtered, warped, blended, m
     </td>
     <td valign="top">
       <h2>Project 2: Fun with Filters and Frequencies</h2>
+      <p><a href="Project2/README.md">Project README</a></p>
       <p>
         This project studies how convolution and frequency separation can change the way images look. It implements convolution from scratch, including a vectorized two-loop version, and applies box filters, finite-difference operators, Gaussian filters, and derivative-of-Gaussian filters for smoothing and edge detection.
       </p>
@@ -71,6 +72,7 @@ This repository explores how images can be aligned, filtered, warped, blended, m
     </td>
     <td valign="top">
       <h2>Project 4: Image Mosaics and Feature Matching</h2>
+      <p><a href="Project4/README.md">Project README</a></p>
       <p>
         This project builds image mosaics in two stages. First, corresponding points are selected manually and used to estimate homographies, warp images into a common coordinate system, and blend the overlapping regions into a panorama.
       </p>
