@@ -1,80 +1,41 @@
 # CS180 Project 4: Image Mosaics and Feature Matching
 
-This project builds panoramic image mosaics in two stages: first with manually selected correspondences, and then with an automatic feature-matching pipeline.
+## Project goal
 
-![Image mosaic result](result/Figure_1-4-3.jpg)
+The goal of this project is to combine overlapping photographs into a wider field-of-view mosaic. The first stage studies the geometry directly: manually selected correspondences are used to estimate a projective homography, warp one photograph into another photograph's coordinate system, and blend the overlap. The second stage replaces manual correspondences with a complete automatic feature-matching pipeline.
 
-## Part 1: Image mosaics
+Automatic stitching detects Harris corners, distributes them spatially with Adaptive Non-Maximal Suppression (ANMS), describes normalized local patches, matches descriptors with a nearest-neighbor ratio test, and uses RANSAC to reject outliers before estimating the final homography. Inverse warping with bilinear interpolation fills the mosaic canvas, while distance-based weights soften the seam in overlapping regions.
 
-### Recovering homographies
+## Result showcase
 
-A homography maps points from one image plane to another. Given corresponding points in two images, the project solves for the (3 \times 3) projective transformation using a linear system.
+### Manual correspondences and homography
 
-### Warping images
+Point correspondences provide the constraints needed to solve for the eight free parameters of a 3 × 3 homography. The recovered transform maps the photographs onto a common projective plane.
 
-The estimated homography is used to warp an image into the coordinate system of a reference image. Inverse mapping and bilinear interpolation are used to sample the source image while avoiding holes in the output.
+![Manual correspondences and homography result](result/Figure_1-3.png)
 
-### Blending mosaics
+### Manual mosaic
 
-After both images are placed on a common canvas, the overlapping region is blended with distance-based weight masks. This reduces hard seams and produces a smoother panorama.
+After warping, both photographs are placed on a shared canvas and blended across their overlap. The scene remains geometrically aligned across the central region despite the viewpoint change.
 
-## Part 2: Feature matching for autostitching
+![Manually stitched image mosaic](result/Figure_1-4-3.jpg)
 
-The automatic stitching pipeline contains the following steps:
+### Automatic feature pipeline
 
-1. **Harris corner detection** finds pixels with strong local corner responses.
-2. **Adaptive Non-Maximal Suppression (ANMS)** keeps strong points that are also spatially distributed across the image.
-3. **Feature descriptor extraction** creates normalized local patches around the selected points.
-4. **Feature matching** compares descriptors and filters unreliable matches.
-5. **RANSAC** repeatedly estimates homographies from random subsets and selects the model with the most inliers.
-6. **Warping and blending** use the robust homography to create the final mosaic.
+Harris detection produces many candidate corners; ANMS keeps a smaller set that is both strong and well distributed. Patch descriptors then provide a compact representation for comparing those points across images.
 
-## Results
+| Harris corners and ANMS | Feature descriptors | Candidate matches |
+|---|---|---|
+| ![Harris corner and ANMS result](result/Figure_2-1.png) | ![Feature descriptor visualization](result/Figure_2-2.png) | ![Automatic feature matches](result/Figure_2-3.png) |
 
-Manual mosaicing results:
+### RANSAC and automatic mosaic
 
-- Homography and correspondence visualization: `result/Figure_1-3.png`
-- Warping and blending examples: `result/Figure_1-4-1.png`–`result/Figure_1-4-3.jpg`
+RANSAC repeatedly fits a homography from minimal four-point samples and retains the model supported by the largest inlier set. This removes mismatched features before the final warp and blend.
 
-Automatic autostitching results:
+| RANSAC inliers | Automatically stitched mosaic |
+|---|---|
+| ![RANSAC inlier visualization](result/Figure_2-4-1.png) | ![Automatically stitched panorama](result/Figure_2-4-2.jpg) |
 
-- Harris corner detection: `result/Figure_2-1.png`
-- Feature descriptor extraction: `result/Figure_2-2.png`
-- Feature matching: `result/Figure_2-3.png`
-- RANSAC and final mosaics: `result/Figure_2-4-1.png`, `result/Figure_2-4-2.jpg`
+## Conclusion
 
-## Installation
-
-The scripts use NumPy, Matplotlib, ImageIO, and SciPy.
-
-```bash
-pip install numpy matplotlib imageio scipy
-```
-
-## Usage
-
-Run scripts from the `Project4` directory. The scripts are organized by assignment part:
-
-```bash
-python "4-1 Image Mosaic/1-2 Recover Homographies.py"
-python "4-1 Image Mosaic/1-3 Warp the Images.py"
-python "4-1 Image Mosaic/1-4 Blend the Images into a Mosaic.py"
-
-python "4-2 Feature Matching for Autostitching/2-1 Harris Corner Detection.py"
-python "4-2 Feature Matching for Autostitching/2-2 Feature Descriptor Extraction.py"
-python "4-2 Feature Matching for Autostitching/2-3 Feature Mapping.py"
-python "4-2 Feature Matching for Autostitching/2-4 RANSAC for Robust Homography.py"
-```
-
-The input photographs are in `data/`, and generated figures are stored in `result/`. Some scripts contain experiment-specific point selections and parameters that can be adjusted for new image pairs.
-
-## File structure
-
-```text
-Project4/
-├── 4-1 Image Mosaic/
-├── 4-2 Feature Matching for Autostitching/
-├── data/
-└── result/
-```
-
+The project shows that panorama stitching depends on both projective geometry and robust correspondence selection. Manual points verify that homography-based warping can align a mostly planar scene, while the automatic pipeline reaches the same goal without hand-selected landmarks. ANMS improves spatial coverage, the ratio test removes ambiguous descriptor matches, and RANSAC is essential for preventing the remaining outliers from corrupting the transform. The final mosaics align the shared scene successfully; their black canvas regions and small exposure differences also reveal the next improvements to make—automatic cropping, exposure compensation, and seam-aware blending.

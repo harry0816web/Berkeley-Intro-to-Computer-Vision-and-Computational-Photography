@@ -1,66 +1,42 @@
 # CS180 Project 5: Neural Fields and NeRF
 
-This directory contains a complete implementation of both required parts:
+## Project goal
 
-- Part 1: a positional-encoded 2D neural field, random pixel sampling, PSNR tracking, two-image experiments, and a two-factor hyperparameter sweep.
-- Part 2: camera transforms, pixel-to-ray conversion, stratified ray sampling, a view-conditioned NeRF, differentiable volume rendering, validation rendering, checkpoints, and a spherical novel-view video.
+This project explores how a neural network can represent visual data as a continuous function instead of a fixed pixel grid. Part 1 fits a 2D neural field that maps positional-encoded pixel coordinates to RGB values. Part 2 extends the idea to a 3D scene with a Neural Radiance Field (NeRF), where the network predicts density and view-dependent color at sampled locations along camera rays.
 
-## Recommended workflow
+The full pipeline includes sinusoidal positional encoding, random pixel and ray sampling, camera-to-world transformations, stratified samples between near and far bounds, a view-conditioned multilayer perceptron, and differentiable volume rendering. PSNR is tracked throughout training to measure how closely the rendered output matches the target images.
 
-Use VS Code to edit and a hosted Colab GPU to train. Open `project5_colab.ipynb`, select **Kernel > Colab > Auto Connect**, then run cells in order. The notebook downloads the official data, runs tests, creates all required visualizations, performs both Part 1 experiments, trains Part 2, and generates `outputs/REPORT.md`.
+## Result showcase
 
-The official Google extension is `google.colab`; it requires a recent VS Code release and also installs the Jupyter dependency.
+### Part 1: Fitting 2D images
 
-## Local Mac setup
+The baseline neural field uses three 256-unit hidden layers and ten positional-encoding frequencies. As optimization progresses, broad colors appear first and high-frequency details are recovered later.
 
-```bash
-cd Project5
-UV_CACHE_DIR=/private/tmp/cs180-project5-uv uv sync --extra dev --python 3.12
-uv run pytest
-uv run python download_data.py
-```
+| Official cat image | Personal image |
+|---|---|
+| ![Cat neural-field training progression](outputs/part1/cat/training_progression.png) | ![Personal-image neural-field training progression](outputs/part1/personal/training_progression.png) |
+| **Final PSNR: 28.97 dB** | **Final PSNR: 40.25 dB** |
 
-PyTorch automatically selects CUDA, Apple MPS, or CPU. For an M1 Pro with 16 GB unified memory, use a smaller local NeRF command:
+The hyperparameter experiment varies encoding bandwidth and network depth while keeping the optimizer, sample count, and random seed fixed. The comparison shows how model capacity and positional encoding affect the network's ability to reproduce fine detail.
 
-```bash
-uv run python train_nerf.py --batch-size 2048 --ray-microbatch 256 --samples 32 --skip-video
-```
+![2D neural-field hyperparameter comparison](outputs/part1/cat/hyperparameter_sweep/comparison.png)
 
-## Full Colab commands
+### Part 2: Constructing rays and samples
 
-```bash
-python download_data.py
-pytest -q
-python visualize_rays.py
-python train_2d.py --image data/part1/official_cat.jpg --output-dir outputs/part1/cat --sweep
-python train_2d.py --image data/part1/personal_photo.png --output-dir outputs/part1/personal
-python train_nerf.py
-python generate_report.py
-```
+Each pixel center is transformed through the inverse camera intrinsics and the camera-to-world matrix to form a world-space ray. During training, 64 stratified samples are drawn between `near = 2.0` and `far = 6.0` along each ray.
 
-`train_nerf.py` saves `checkpoint_latest.pt` periodically. The target iteration must be larger than the checkpoint step when resuming. For example, continue a 1000-step run to 3000 steps with:
+![Camera frustums, rays, and sampled points](outputs/part2/rays_and_samples.png)
 
-```bash
-python train_nerf.py --iterations 3000 --resume outputs/part2/checkpoint_latest.pt
-```
+### NeRF reconstruction
 
-## Expected outputs
+The NeRF uses an eight-layer, 256-unit position network with a skip connection and a separate view-direction branch. Volume rendering accumulates color according to the density and transmittance predicted along each ray.
 
-```text
-outputs/
-  part1/cat/
-    psnr_curve.png
-    training_progression.png
-    hyperparameter_sweep/comparison.png
-  part1/personal/
-    psnr_curve.png
-    training_progression.png
-  part2/
-    rays_and_samples.png
-    psnr_curves.png
-    validation/step_*.png
-    lego_novel_views.mp4
-    lego_novel_views.gif
-    checkpoint_latest.pt
-  REPORT.md
-```
+![NeRF training and validation PSNR](outputs/part2/psnr_curves.png)
+
+Validation PSNR across six held-out views reaches **23.53 dB** after 1,000 iterations. The learned radiance field can then render a continuous spherical camera path that was not present in the training set.
+
+![NeRF novel-view rendering](outputs/part2/lego_novel_views.gif)
+
+## Conclusion
+
+The experiments demonstrate that positional encoding allows an MLP to recover image detail that a plain coordinate network would struggle to represent. In 2D, the network reconstructs both test images with high PSNR, although the difference between 28.97 dB and 40.25 dB also shows that image complexity strongly affects fitting difficulty. In 3D, the model learns enough geometry and appearance from multiview supervision to synthesize a smooth novel-view trajectory, reaching 23.53 dB on held-out views. The remaining softness and reconstruction error are consistent with the limited 1,000-iteration training budget; longer training, hierarchical sampling, and a coarse-to-fine NeRF would be natural next steps.

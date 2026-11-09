@@ -1,107 +1,49 @@
-# Project 3 — Face Morphing
+# CS180 Project 3：Face Morphing
 
-本專案是 Berkeley CS180/280A 的 Computational Photography 作業，主題是
-**人臉 morphing（臉部變形）**。目標是透過臉部特徵點、三角剖分、仿射變形與顏色融合，
-讓一張臉平滑地變成另一張臉；接著利用一組人臉資料計算平均臉，並從平均臉外插出自己的 caricature。
+## 專案目標
 
-## 主要工作
+本專案的目標是讓兩張人臉自然地互相轉換，並進一步從一組人臉資料建立 population mean face 與 caricature。核心問題不只是混合兩張圖片的顏色，而是要同時處理臉部幾何形狀與外觀：先在兩張臉上標記相同語意的特徵點，以 Delaunay triangulation 建立共同網格，再對每個三角形進行 inverse affine warp，最後以 cross-dissolve 融合顏色。
 
-1. **標記對應特徵點**：在自己的照片與目標人臉上，以相同順序標記眼睛、鼻子、嘴巴、下巴、耳朵等位置。
-2. **建立三角網格**：使用特徵點建立 Delaunay triangulation，作為後續變形的固定網格。
-3. **製作 midway face**：計算兩張臉的平均形狀，對每個三角形做 affine warp，再將兩張變形後的圖片平均融合。
-4. **產生 morph sequence**：逐步改變形狀比例與顏色融合比例，輸出從自己的臉變成目標臉的動畫或 GIF。
-5. **計算 population mean face**：使用附有標註的人臉資料集，將每張臉變形到平均幾何形狀，計算並展示族群平均臉。
-6. **製作 caricature**：將自己的臉相對於族群平均臉的形狀差異外插，產生誇張化的人臉。
+專案包含四個主要成果：Eleven 與 George 的 midway face、完整 morph sequence、IMM Face Dataset 的平均臉，以及將 Eleven 相對於平均臉的差異外插後得到的 caricature。
 
-## 實作重點
+## 成果展示
 
-- 使用 inverse warp，逐個三角形處理像素區域；不要對每個像素再寫額外的全域迴圈。
-- affine transformation 必須自行計算，不使用內建的幾何轉換函式。
-- 兩張圖片的特徵點順序必須一致，且 morph 過程中要使用同一份 triangulation。
-- 自己的照片與目標照片最好有相同尺寸、比例、背景與臉部位置。
+### 特徵點與三角網格
 
-## 預期成果
+對應特徵點決定眼睛、鼻子、嘴巴、輪廓等部位在 morph 過程中的移動方向。兩張圖片共用同一份 triangulation，可避免轉換過程中網格拓樸突然改變。
 
-- 特徵點與三角剖分圖
-- 原始圖片 A、原始圖片 B，以及 midway face
-- 從圖片 A 到圖片 B 的 morph GIF 或影片連結
-- 資料集中的平均臉、變形範例，以及自己的臉與平均臉互相變形的結果
-- 一張自己的 caricature
-- 至少一個 bells and whistles 延伸項目，例如改變年齡／性別／表情、PCA face space，或互動式臉部變形工具
+![Facial landmarks and Delaunay triangulation](results/landmarks_and_triangulation.png)
 
-完整作業說明：[CS180 Project 3 — Computational Photography](https://cal-cs180.github.io/fa24/hw/proj3/index.html)
+### Midway face
 
-## 目前進度
+Midway face 使用兩張臉的平均幾何形狀，先將 Eleven 與 George 各自 warp 到中間形狀，再以 50% 比例融合外觀。
 
-- `eleven.jpeg`：原始的 Eleven 照片（200 × 250）
-- `eleven_aligned.jpg`：放大到與 George 相同的 602 × 750 工作版本
-- `george_small.jpg`：目標照片
-- `select_points.py`：互動式特徵點標記與 Delaunay triangulation 工具
+![Eleven, midway face, and George comparison](results/midway_comparison.png)
 
-從 `Project3` 目錄執行：
+### Morph sequence
 
-```bash
-../.venv/bin/python select_points.py
-```
+完整動畫同步改變 shape warp fraction 與 dissolve fraction，共輸出 46 個中間影格，形成從 Eleven 到 George 的連續轉換。
 
-程式會依序要求在 Eleven 和 George 上點選同一個特徵。請仔細遵守畫面上的標籤順序；完成後會產生 `face_points.npz` 與 `results/landmarks_and_triangulation.png`。
+![Eleven to George morph sequence](results/eleven_to_george.gif)
 
-建立 midway face：
+### IMM population mean face
 
-```bash
-../.venv/bin/python morph.py
-```
+IMM Face Dataset 中 240 張人臉各自附有 58 個 landmark。將每張臉 warp 到平均 landmark geometry 後逐像素平均，可以把個別差異消除並保留資料集共有的臉部結構。
 
-這一步會將兩張臉分別 warp 到平均形狀，再以 50% 比例融合。結果會儲存在 `results/midway_face.jpg`，並同時輸出兩張單獨 warp 後的圖片與三張圖片的比較圖。
+| Warped examples | Population mean face |
+|---|---|
+| ![IMM faces warped to the mean geometry](results/imm_mean/imm_warped_examples.png) | ![IMM population mean face](results/imm_mean/imm_mean_face.jpg) |
 
-建立 46 幀的完整 morph 動畫：
+### Caricature
 
-```bash
-../.venv/bin/python make_morph_sequence.py
-```
+Caricature 將 Eleven 與 population mean 的形狀差異向外延伸：
 
-程式會輸出 `results/morph_frames/frame_00.png` 到 `frame_45.png`，並建立 `results/eleven_to_george.gif`。
+`P_caricature = P_mean + alpha × (P_Eleven - P_mean)`
 
-## Part 4：IMM population mean face
+當 `alpha > 1` 時，Eleven 相對於平均臉的幾何特徵會被放大；比較圖呈現不同外插強度對臉型的影響。
 
-`IMM-Face` 根目錄包含 240 張圖片與各自的 58 個 ASF 特徵點標註。計算平均臉時使用根目錄的 240 組 JPG/ASF 配對，不包含 `IMM-Face/data/` 內的重複子集。程式會先平均所有人的 landmark geometry，再將每張臉 warp 到平均形狀，最後逐像素平均。
+![Eleven caricature comparison](results/caricature/caricature_comparison.png)
 
-```bash
-../.venv/bin/python compute_imm_mean.py
-```
+## 結論
 
-輸出會放在 `results/imm_mean/`：
-
-- `imm_mean_face.jpg`：IMM dataset 的 population mean face
-- `imm_mean_shape.png`：平均臉與 triangulation
-- `imm_warped_examples.png`：六張 warp 到平均形狀的範例
-- `imm_mean_geometry.npz`：平均 landmark、三角網格與資料集資訊
-
-資料集本身已加入根目錄 `.gitignore`，不會被提交到 Git；計算結果仍會保留在專案中。
-
-## Mean face 與 morphing 的比較
-
-原本的 `Eleven → George` morph 不使用 IMM dataset，因此計算 population mean 不會改變原本的 midway face。若要比較兩者，執行：
-
-```bash
-../.venv/bin/python compare_morphs.py
-```
-
-程式會比較 `Eleven → George` 與 `IMM 01-1m → IMM population mean`，輸出到 `results/morph_comparison/`。
-
-## Part 5：Eleven caricature
-
-IMM 使用 58 個 landmark，與前面 Eleven→George 使用的點集不同。因此先執行：
-
-```bash
-../.venv/bin/python select_imm_points.py
-```
-
-程式左側會要求你在 Eleven 上點 58 個點，右側會同步顯示 IMM mean face 的對應點。完成後會產生 `eleven_imm_points.npz`，再執行：
-
-```bash
-../.venv/bin/python repair_imm_points.py
-../.venv/bin/python make_caricature.py
-```
-
-修正工具會檢查並修復會造成三角形翻轉的 outlier click。`make_caricature.py` 使用 `P_caricature = P_mean + alpha * (P_Eleven - P_mean)` 外插形狀；`alpha=1` 是原始 Eleven，`alpha>1` 會放大 Eleven 相對於 population mean 的臉型差異，結果會放在 `results/caricature/`。
+這個專案顯示，自然的人臉 morph 必須同時處理幾何與顏色；單純 cross-dissolve 只能得到重影，無法對齊五官。共同的 landmark 順序、穩定的 triangulation 與逐三角形 inverse warp，是讓轉換連續的關鍵。Population mean face 則把同一套方法擴展到整個資料集，而 caricature 進一步證明「個人特徵」可以視為個體形狀相對於平均形狀的向量。成果中最敏感的環節仍是 landmark 品質：少數位置錯誤就可能造成三角形翻轉或局部拉扯，因此更可靠的自動 landmark detection 會是最直接的改進方向。

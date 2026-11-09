@@ -1,94 +1,49 @@
 # CS180 Project 2: Fun with Filters and Frequencies
 
-This project explores how convolution and frequency decomposition can be used for image filtering, edge detection, sharpening, hybrid images, and multiresolution blending.
+## Project goal
 
-## What is included
+This project investigates how spatial filters and frequency decomposition can be used to analyze and manipulate images. The goal is to build the core operations from first principles, then use them for edge detection, sharpening, hybrid images, multiscale analysis, and seamless blending.
 
-### 1. Convolution from scratch
+The work begins with a NumPy implementation of 2D convolution and finite-difference gradients. Gaussian smoothing is then combined with derivatives to suppress noise, while high- and low-frequency components are recombined for sharpening and hybrid images. Finally, Gaussian and Laplacian stacks provide a multiresolution representation for blending images without a hard seam.
 
-The project implements 2D convolution with NumPy and compares the result with `scipy.signal.convolve2d`. Both a straightforward four-loop implementation and a faster two-loop implementation using array operations are included.
+## Result showcase
 
-A normalized box filter is used to blur an image, while finite-difference filters estimate horizontal and vertical derivatives.
+### Convolution and edge detection
 
-### 2. Finite differences and derivative of Gaussian
+The custom convolution implementation reproduces standard filtering behavior, while finite differences reveal horizontal and vertical intensity changes. Smoothing before differentiation produces a cleaner edge map with fewer noise responses.
 
-The (D_x) and (D_y) finite-difference operators are applied to compute image gradients. Their responses are combined into a gradient-magnitude image and thresholded to obtain an edge map.
+| Convolution from scratch | Finite-difference edges | Derivative of Gaussian |
+|---|---|---|
+| ![Convolution comparison](result/Figure_1-1.png) | ![Finite-difference result](result/Figure_1-2.png) | ![Derivative-of-Gaussian result](result/Figure_1-3.png) |
 
-The derivative-of-Gaussian experiment first smooths the image and then detects edges. This reduces small-scale noise and produces cleaner contours than applying finite differences directly.
+### Sharpening
 
-### 3. Image sharpening
+Sharpening isolates the high-frequency residual between an image and its Gaussian-blurred version, then adds a scaled version of that residual back to the image.
 
-A blurred image is sharpened by adding a scaled high-frequency component back to the image:
+![Image sharpening result](result/Figure_2-1-1.png)
 
-```text
-sharpened = image + alpha * (image - GaussianBlur(image))
-```
+### Hybrid images
 
-The scripts also compare the original sharp image, a simulated blurred image, and the restored result.
+A hybrid image combines the low frequencies of one aligned image with the high frequencies of another. Its interpretation changes with viewing distance: fine detail dominates up close, while the low-frequency structure becomes more visible from farther away.
 
-### 4. Hybrid images
+| Hybrid image | Frequency-domain analysis |
+|---|---|
+| ![Hybrid image result](result/Figure_2-2-1.png) | ![Hybrid image Fourier analysis](result/Figure_2-2-2.png) |
 
-Hybrid images combine the low frequencies of one image with the high frequencies of another. The input images are aligned first, then Gaussian blur is used to separate their frequency components. The result changes appearance depending on viewing distance.
+### Gaussian and Laplacian stacks
 
-The project also visualizes the Fourier magnitude spectrum of the input and hybrid images.
+The Gaussian stack progressively removes fine detail. The Laplacian stack stores the band-pass information between adjacent Gaussian levels, allowing the image to be reconstructed from its frequency bands.
 
-### 5. Gaussian and Laplacian stacks
+![Gaussian and Laplacian stack visualization](result/Figure_2-3-1.png)
 
-Gaussian stacks show progressively blurred versions of an image. Laplacian stacks store the band-pass details between neighboring Gaussian levels, making it possible to reconstruct the original image from the sum of its frequency bands.
+### Multiresolution blending
 
-### 6. Multiresolution blending
+Blending the apple and orange independently at each Laplacian level produces a gradual transition across scales and avoids the obvious boundary created by direct compositing.
 
-Two images are blended with a mask at multiple resolutions. Apple and orange are combined into the “oraple” result while preserving a smooth transition between the two halves.
+| Oraple | Additional multiresolution blend |
+|---|---|
+| ![Apple-orange multiresolution blend](result/Figure_2-4-1.png) | ![Additional multiresolution blending result](result/Figure_2-4-2.png) |
 
-![Multiresolution blending result](result/Figure_2-4-1.png)
+## Conclusion
 
-## Results
-
-- Filtering and finite-difference visualizations: `result/Figure_1-1.png`, `result/Figure_1-2.png`
-- Derivative-of-Gaussian edge detection: `result/Figure_1-3.png`
-- Sharpening: `result/Figure_2-1-1.png`
-- Hybrid images and frequency analysis: `result/Figure_2-2-1.png`, `result/Figure_2-2-2.png`
-- Gaussian/Laplacian stack reconstruction: `result/Figure_2-3-1.png`–`result/Figure_2-3-3.png`
-- Multiresolution blending: `result/Figure_2-4-1.png`, `result/Figure_2-4-2.png`
-
-## Installation
-
-The scripts use NumPy, Matplotlib, ImageIO, SciPy, scikit-image, and OpenCV.
-
-```bash
-pip install numpy matplotlib imageio scipy scikit-image opencv-python
-```
-
-## Usage
-
-Run scripts from the `Project2` directory. File names containing spaces should be quoted.
-
-```bash
-python "1-1 Conv from Scratch.py"
-python "1-2 Finite Difference.py"
-python "1-3 Derivative of Gaussian (DoG) Filter.py"
-python "2-1 Image Shaperning.py"
-python "2-2-1 Alignment.py"
-python "2-2-2 Hybrid Images.py"
-python "2-2-3 Color Hign or Low.py"
-python "2-3 Gaussian and Laplacian Stacks.py"
-python "2-4 Multiresolution Blending.py"
-```
-
-Most scripts use the sample images stored directly in this directory and display their results with Matplotlib. Adjust the input paths and parameters near the bottom of each script when experimenting with other images.
-
-## File structure
-
-```text
-Project2/
-├── 1-1 Conv from Scratch.py
-├── 1-2 Finite Difference.py
-├── 1-3 Derivative of Gaussian (DoG) Filter.py
-├── 2-1 Image Shaperning.py
-├── 2-2-1 Alignment.py
-├── 2-2-2 Hybrid Images.py
-├── 2-2-3 Color Hign or Low.py
-├── 2-3 Gaussian and Laplacian Stacks.py
-├── 2-4 Multiresolution Blending.py
-└── result/
-```
+The experiments show that many visual effects are different ways of controlling image frequency content. Derivative filters expose rapid changes, Gaussian filters suppress high frequencies, sharpening restores them, and hybrid images deliberately assign different frequency bands to different subjects. The multiresolution blend is the clearest practical result: operating on Laplacian bands produces a much smoother boundary than blending all detail at one scale. Good alignment and carefully selected cutoff scales remain essential, because frequency methods cannot hide geometric mismatch between source images.

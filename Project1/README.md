@@ -1,57 +1,31 @@
-# CS180 Computer Vision Project #1: Prokudin-Gorskii Colorization
+# CS180 Project 1: Colorizing the Prokudin-Gorskii Collection
 
-Basic starter code for colorizing Prokudin-Gorskii glass plate images. **You need to implement the alignment functions yourself.**
+## Project goal
 
-## What's Provided
+The Prokudin-Gorskii collection records each scene as three vertically stacked grayscale exposures captured through blue, green, and red filters. The goal of this project is to recover a single color photograph by separating those exposures, registering the green and red channels to the blue reference, and stacking the aligned channels as RGB.
 
-- **Image Loading**: Load and preprocess glass plate images
-- **Channel Splitting**: Split into Blue, Green, Red channels (BGR order)
-- **Utility Functions**: Image shifting, distance metrics (L2, NCC)
-- **Result Creation**: Combine aligned channels into RGB image
-- **Visualization**: Display original channels and final result
+The main challenge is that the channels are displaced by different amounts, especially in high-resolution glass-plate scans. I therefore compare candidate translations with L2 distance, normalized cross-correlation, and SSIM; use cropped image regions to keep borders from dominating the score; and apply coarse-to-fine pyramid alignment for large images. Sobel edge responses provide an additional way to align scene structure when the three exposures have noticeably different brightness.
 
-## What You Need to Implement
+## Result showcase
 
-- **`align_channels_single_scale()`**: Single-scale alignment with exhaustive search
-- **`align_channels_pyramid()`**: Multi-scale pyramid alignment for large images
+### High-resolution plate
 
-## Installation
+The harvesters example shows the three original exposures together with the reconstructed color image. Pyramid alignment makes the large displacement manageable by estimating it first at a coarse scale and refining it at full resolution.
 
-```bash
-pip install -r requirements.txt
-```
+![Harvesters channels and aligned color result](data/harvesters.tif_aligned.jpg)
 
-## Usage
+The edge visualization highlights structural features shared across the three channels and reduces the influence of exposure differences.
 
-```python
-from colorize_prokudin_gorskii import ProkudinGorskiiColorizer
+![Sobel edge responses used for alignment](data/harvesters.tif_edges.jpg)
 
-colorizer = ProkudinGorskiiColorizer()
-colorizer.load_image("monastery.jpg")
-colorizer.split_channels()
+### Smaller examples
 
-# TODO: Implement these functions!
-g_offset, r_offset = colorizer.align_channels_single_scale(search_range=15, metric='ncc')
-aligned_image = colorizer.create_aligned_image(g_offset, r_offset)
-colorizer.display_results("result.jpg")
-```
+For the smaller JPEG plates, exhaustive single-scale search is sufficient to recover the channel translations.
 
-## Key Points
+| Cathedral | Monastery | Tobolsk |
+|---|---|---|
+| ![Cathedral colorization](data/cathedral.jpg_aligned.jpg) | ![Monastery colorization](data/monastery.jpg_aligned.jpg) | ![Tobolsk colorization](data/tobolsk.jpg_aligned.jpg) |
 
-- Filter order: **BGR** (Blue, Green, Red) from top to bottom
-- Use `shift_image()` to move channels by (dx, dy) pixels
-- Use `l2_distance()` or `normalized_cross_correlation()` as metrics
-- NCC generally works better than L2
-- Start with small .jpg images, then use pyramid for large .tif files
+## Conclusion
 
-## File Structure
-
-```
-CS180-CV/
-├── colorize_prokudin_gorskii.py    # Main file - implement alignment functions
-├── example_usage.py                # Simple usage example
-├── requirements.txt                # Dependencies
-└── README.md                       # This file
-```
-
-Good luck with your implementation! 🚀
+This project demonstrates that convincing color can be reconstructed from century-old monochrome exposures with translation-based registration alone. Single-scale search works well for small images, while the image pyramid makes the same search practical for large scans. SSIM and edge-based matching are especially useful when brightness differs between color channels. The remaining color fringes near the plate boundaries come from invalid border regions and imperfect overlap; automatic cropping or border-aware masks would be the most valuable next improvement.
