@@ -111,5 +111,3 @@ CS180-CV/
 ├── Project5/   # Neural fields and NeRF
 └── Project Website/  # React project showcase
 ```
-
-> Coursework materials and implementations are provided for personal educational use. Please follow the policies of the original CS180 course when sharing or redistributing assignment materials.
